@@ -1,0 +1,50 @@
+version: '3.5'
+
+services:
+    mysql_master:
+        build:
+            context: ./mysql_master
+            args:
+                MYSQL_VERSION: $MYSQL_VERSION
+        env_file:
+            - ./mysql_master/.env
+        container_name: "mysql_master"
+        restart: "no"
+        ports:
+            - 3307:3306
+        volumes:
+            - ./mysql_master/conf/custom.cnf:/etc/mysql/conf.d/custom.cnf
+            - ./mysql_master/data:/var/lib/mysql
+            - ./mysql_master/log:/var/log/mysql
+        networks:
+            uns:
+    
+    mysql_slave:
+        build:
+            context: ./mysql_slave
+            args:
+                MYSQL_VERSION: $MYSQL_VERSION
+        env_file:
+            - ./mysql_slave/.env        
+        restart: "no"
+        container_name: "mysql_slave"
+        ports:
+            - 3308:3306
+        depends_on:
+            - mysql_master
+        volumes:
+            - ./mysql_slave/conf/custom.cnf:/etc/mysql/conf.d/custom.cnf
+            - ./mysql_slave/data:/var/lib/mysql
+            - ./mysql_slave/log:/var/log/mysql
+        networks:
+            uns:
+
+networks:
+  uns:
+    name: uns
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.27.0.0/16
+
+            
